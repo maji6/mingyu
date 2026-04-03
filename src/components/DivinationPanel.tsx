@@ -185,7 +185,12 @@ export function DivinationPanel() {
     setSession(record.session);
     setError('');
     setIsSubmitting(false);
-  }, [searchParams]);
+
+    const nextSearchParams = new URLSearchParams(searchParams);
+    nextSearchParams.set('mode', 'divination');
+    nextSearchParams.delete('record');
+    setSearchParams(nextSearchParams, { replace: true });
+  }, [searchParams, setSearchParams]);
 
   const summary = useMemo(
     () => (session ? getSummaryBlocks(session.method, session.data) : null),
@@ -274,11 +279,8 @@ export function DivinationPanel() {
       const nextSession = await generateDivinationSession(draft);
       const savedRecord = addDivinationHistory(draft, nextSession);
       setSession(nextSession);
-      if (savedRecord) {
-        const nextSearchParams = new URLSearchParams(searchParams);
-        nextSearchParams.set('mode', 'divination');
-        nextSearchParams.set('record', savedRecord.id);
-        setSearchParams(nextSearchParams, { replace: true });
+      if (!savedRecord) {
+        return;
       }
     } catch (currentError) {
       setError(currentError instanceof Error ? currentError.message : '占卜生成失败，请稍后重试');
